@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html>
+    <head lang="en">
+        <meta charset="UTF-8">
+        <title></title>
+        <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css" />
+        <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
+        <script src="https://code.jquery.com/jquery-3.6.0.js"></script>
+        <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.js"></script>
+        <script>
+            $(document).ready(function () {
+
+                $('#monitor_slider').slider({
+                    min: 0,
+                    max: 200,
+                    value: 100,
+                    step: 5,
+                    animate: false,
+                    change: function(event, ui) {
+                        var targetPath = $(event.target).data('target');                     
+                        $(targetPath).text(ui.value);
+                        calculateROI();
+                    }
+                });
+                $('#monitor').text(100);
+
+                $('#ventilator_slider').slider({
+                    min: 0,
+                    max: 200,
+                    value: 100,
+                    step: 5,
+                    animate: false,
+                    change: function(event, ui) {
+                        var targetPath = $(event.target).data('target');                     
+                        $(targetPath).text(ui.value);
+                        calculateROI();
+                    }
+                });
+                $('#ventilator').text(100);
+
+                $('#infra_slider').slider({
+                    min: 0,
+                    max: 900000,
+                    value: 200000,
+                    step: 5000,
+                    animate: false,
+                    change: function(event, ui) {
+                        var targetPath = $(event.target).data('target');                     
+                        $(targetPath).text(ui.value.toLocaleString("en-US"));
+                        calculateROI();
+                    }
+                });
+                $('#infra').text("200,000");
+
+                $('#oper_slider').slider({
+                    min: 0,
+                    max: 900000,
+                    value: 100000,
+                    step: 5000,
+                    animate: false,
+                    change: function(event, ui) {
+                        var targetPath = $(event.target).data('target');                     
+                        $(targetPath).text(ui.value.toLocaleString("en-US"));
+                        calculateROI();
+                    }
+                });
+                $('#oper').text("100,000");
+
+                calculateROI();
+
+                $('.ui-slider')
+                    .on('change', function (event, value) {
+                        var targetPath = $(event.target).data('target');                     
+                        $(targetPath).text(value);
+                        calculateROI();
+                    });
+
+                $('.small-input')
+                    .on('change', function() {
+                        calculateROI();
+                    });
+            });
+
+            function calculateROI() {
+                var num_monitors = Number($('#monitor_slider').slider('value'));
+                var num_ventilators = Number($('#ventilator_slider').slider('value'));;
+
+                var monitor_cost = $('#monitor_cost').val();
+                var ventilator_cost = $('#ventilator_cost').val();
+                var infra_cost = Number($('#infra_slider').slider('value'));
+                var oper_cost = Number($('#oper_slider').slider('value'));
+
+                var time_saved_per_monitor = Number($('#time_monitor').val());
+                var time_saved_per_ventilator = Number($('#time_ventilator').val());
+                var hourly_rate = Number($('#hourly_rate').val());
+
+                var total_monitor_cost = monitor_cost * num_monitors;
+                var total_ventilator_cost = ventilator_cost * num_ventilators;
+                var total_infra_cost = infra_cost;
+                var total_initial_investment = total_monitor_cost + total_ventilator_cost + total_infra_cost;
+                $('#total_initial_investment').text(total_initial_investment.toLocaleString("en-US"));
+
+                var total_time_saved_by_monitor = time_saved_per_monitor * num_monitors * 365;
+                var total_time_saved_by_ventilator = time_saved_per_ventilator * num_ventilators * 365;
+                var total_time_saved = total_time_saved_by_monitor + total_time_saved_by_ventilator;
+                var total_cost_savings = total_time_saved * hourly_rate;
+
+                var annual_net_benefit = total_cost_savings - oper_cost;
+                $('#annual_net_benefit').text(annual_net_benefit.toLocaleString("en-US"));
+                var roi = Number((annual_net_benefit / total_initial_investment) * 100).toFixed(2).toLocaleString("en-US");
+                $('#roi').text(roi);
+
+                if (roi > 100) {
+                    $('#result').text('Your investment could potentially yield a positive return.');
+                    $('#result').addClass('positive');
+                    $('#result').removeClass('negative');
+                } else {
+                    $('#result').text('Your investment can\'t yield a positive return.');
+                    $('#result').addClass('negative');
+                    $('#result').removeClass('positive');
+                }
+            }
+        </script>
+        <style type="text/css">
+
+            .value.editing {
+                color: #aaa;
+            }
+
+            .ui-slider-horizontal {
+                width: 100%;
+                margin-top: 20px;
+                margin-bottom: 20px;
+            }
+            .ui-slider-control.vertical {
+                height: 200px;
+            }
+            .positive {
+                color: rgb(41, 175, 41);
+            }
+            .negative {
+                color: rgb(179, 22, 56);
+            }
+
+        </style>
+
+    </head>
+    <body>
+        <div class="container" style="padding: 50px;">
+            <h1><strong>ROI Calculator</strong></h1>
+            <div class="row" style="margin-top: 50px;">
+                <div class="col-xs-12 col-sm-6">
+                    <input type="hidden" id="monitor_cost" value="10000" class="small-input" min="1000" max="20000" step="500"/>
+            <input type="hidden" id="time_monitor" value="2" class="small-input"/>
+            Number of Connected Patient Monitors: <b id="monitor" style="font-size:20px;">0</b><div data-target="#monitor" class="ui-slider" id="monitor_slider"></div>
+            <input type="hidden" id="ventilator_cost" value="25000" class="small-input" min="5000" max="50000" step="500"/>
+            <input type="hidden" id="time_ventilator" value="2" class="small-input"/>
+            Number of Connected Ventilators: <b id="ventilator" style="font-size:20px;">0</b><div data-target="#ventilator" class="ui-slider" id="ventilator_slider"></div>
+            Infrastructure Cost: <b style="font-size:20px;">$</b><b id="infra" style="font-size:20px;">0</b><div data-target="#infra" class="ui-slider" id="infra_slider"></div>
+            Operational Cost: <b style="font-size:20px;">$</b><b style="font-size:20px;" id="oper">0</b><div data-target="#oper" class="ui-slider" id="oper_slider"></div>
+            <p style="margin-top:24px;">Hourly Rate($): &nbsp;&nbsp;&nbsp;<input type="number" step="5" id="hourly_rate" value="30" min="10" class="small-input" style="text-align:right; width: 100px;"/></p>
+                </div>
+                <div class="col-xs-12 col-sm-6 text-left">
+                    <div>Initial Investment: <b style="font-size:20px;">$</b><b id="total_initial_investment" style="font-size:20px;"></b></div><br>
+                    <div>Annual Net Benefit: <b style="font-size:20px;">$</b><b style="font-size:20px;" id="annual_net_benefit"></b></div><br>
+                    <div>ROI: <b style="font-size:20px;" id="roi"></b><b style="font-size:20px;">%</b></div>
+                    <h4><b id="result"></b></h4>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-xs-12 col-sm-6">
+					<div class="panel panel-default">
+                        <div class="panel-heading">Note</div>
+                        <div class="panel-body">
+							The actual ROI calculations should consider additional factors such as the time frame for achieving benefits, ongoing maintenance costs, potential cost savings from reduced errors or improved patient outcomes, and any potential risks or uncertainties. Consulting with healthcare IT professionals or conducting a more comprehensive analysis specific to the hospital's circumstances will provide a more accurate ROI estimation.
+						</div>
+					</div>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>
